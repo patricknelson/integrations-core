@@ -123,7 +123,7 @@ To ensure that your Openmetrics configuration is not redundantly collecting metr
 
 #### Openmetrics V2 configuration
 
-```text
+```yaml
 ## Every instance is scheduled independent of the others.
 #
 instances:
