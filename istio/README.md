@@ -132,7 +132,7 @@ instances:
     ## @param openmetrics_endpoint - string - optional
     ## The URL exposing metrics in the OpenMetrics format.
     #
-    # openmetrics_endpoint: <OPENMETRICS_ENDPOINT>
+    openmetrics_endpoint: <OPENMETRICS_ENDPOINT>
 
     ## @param metrics - (list of string or mapping) - required
     ## This list defines which metrics to collect from the `openmetrics_endpoint`.
