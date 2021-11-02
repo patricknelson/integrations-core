@@ -112,6 +112,112 @@ See [service_checks.json][16] for a list of service checks provided by this inte
 
 ## Troubleshooting
 
+### Using Openmetrics Integration
+
+If Istio proxy sidecar injection is enabled, monitoring other Prometheus metrics via the [Openmetrics integration][20] can result in high custom metrics usage and duplicated metric collection.
+
+To ensure that your Openmetrics configuration is not redundantly collecting metrics, either:
+
+1. Use specific metric matching in the `metrics` configuration option
+2. If you use `*` value for `metrics`, then at minimum, consider including the following optional options to exclude metrics already collected by istio and Envoy inegrations.
+
+#### Openmetrics V2 configuration
+
+```text
+## Every instance is scheduled independent of the others.
+#
+instances:
+
+  -
+    ## @param openmetrics_endpoint - string - optional
+    ## The URL exposing metrics in the OpenMetrics format.
+    #
+    # openmetrics_endpoint: <OPENMETRICS_ENDPOINT>
+
+    ## @param metrics - (list of string or mapping) - required
+    ## This list defines which metrics to collect from the `openmetrics_endpoint`.
+    ## Metrics may be defined in 3 ways:
+    ##
+    ## 1. If the item is a string, then it represents the exposed metric name, and
+    ##    the sent metric name will be identical. For example:
+    ##
+    ##      metrics:
+    ##      - <METRIC_1>
+    ##      - <METRIC_2>
+    ## 2. If the item is a mapping, then the keys represent the exposed metric names.
+    ##
+    ##      a. If a value is a string, then it represents the sent metric name. For example:
+    ##
+    ##           metrics:
+    ##           - <EXPOSED_METRIC_1>: <SENT_METRIC_1>
+    ##           - <EXPOSED_METRIC_2>: <SENT_METRIC_2>
+    ##      b. If a value is a mapping, then it must have a `name` and/or `type` key.
+    ##         The `name` represents the sent metric name, and the `type` represents how
+    ##         the metric should be handled, overriding any type information the endpoint
+    ##         may provide. For example:
+    ##
+    ##           metrics:
+    ##           - <EXPOSED_METRIC_1>:
+    ##               name: <SENT_METRIC_1>
+    ##               type: <METRIC_TYPE_1>
+    ##           - <EXPOSED_METRIC_2>:
+    ##               name: <SENT_METRIC_2>
+    ##               type: <METRIC_TYPE_2>
+    ##
+    ##         The supported native types are `gauge`, `counter`, `histogram`, and `summary`.
+    ##
+    ## Regular expressions may be used to match the exposed metric names, for example:
+    ##
+    ##   metrics:
+    ##   - ^network_(ingress|egress)_.+
+    ##   - .+:
+    ##       type: gauge
+    #
+    metrics: [*]
+
+    ## @param exclude_metrics - list of strings - optional
+    ## A list of metrics to exclude, with each entry being either
+    ## the exact metric name or a regular expression.
+    ## In order to exclude all metrics but the ones matching a specific filter,
+    ## you can use a negative lookahead regex like:
+    ##   - ^(?!foo).*$
+    #
+    exclude_metrics:
+      - istio_*
+      - envoy_*
+
+```
+
+#### Openmetrics V1 configuration (Legacy)
+
+```yaml
+instances:
+
+    ## @param prometheus_url - string - required
+    ## The URL where your application metrics are exposed by Prometheus.
+    #
+  - prometheus_url: <PROMETHEUS_URL>
+
+    ## @param namespace - string - required
+    ## The namespace to be prepended to all metrics.
+    #
+    namespace: service
+
+    ## @param metrics - (list of string or mapping) - required
+    ## List of metrics to be fetched from the prometheus endpoint, if there's a
+    ## value it'll be renamed. This list should contain at least one metric.
+    #
+    metrics:
+      - *
+
+    ## @param ignore_metrics - list of strings - optional
+    ## A list of metrics to ignore, use the "*" wildcard can be used to match multiple metric names.
+    #
+    ignore_metrics:
+      - istio_*
+      - envoy_*
+```
+
 Need help? Contact [Datadog support][17].
 
 ## Further Reading
@@ -141,3 +247,4 @@ Additional helpful documentation, links, and articles:
 [17]: https://docs.datadoghq.com/help/
 [18]: https://www.datadoghq.com/blog/monitor-istio-with-datadog
 [19]: https://www.datadoghq.com/blog/istio-metrics/
+[20]: https://docs.datadoghq.com/integrations/openmetrics/
